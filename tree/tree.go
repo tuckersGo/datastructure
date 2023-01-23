@@ -1,9 +1,23 @@
 package tree
 
+import "datastructure/tree/nodeinterface"
+
 type TreeNode[T any] struct {
 	Value T
 
 	Childs []*TreeNode[T]
+}
+
+func (t *TreeNode[T]) GetChilds() []nodeinterface.Node {
+	var childs []nodeinterface.Node
+	for _, c := range t.Childs {
+		childs = append(childs, c)
+	}
+	return childs
+}
+
+func (t *TreeNode[T]) GetValue() any {
+	return t.Value
 }
 
 func (t *TreeNode[T]) Add(val T) *TreeNode[T] {
