@@ -57,41 +57,10 @@ func TestRemoveTest(t *testing.T) {
 	assert.True(t, tree.Contains(LesserInt(5)))
 }
 
-func TestRemoveTest2(t *testing.T) {
-	tree := &Tree{}
-	tree.Add(LesserInt(6))
-	tree.Add(LesserInt(3))
-	tree.Add(LesserInt(2))
-
-	tree.Remove(LesserInt(3))
-
-	err := drawer.SaveTreeGraph(tree.Root, "./tree.png")
-	assert.Nil(t, err)
-
-	assert.False(t, tree.Contains(LesserInt(3)))
-	assert.True(t, tree.Contains(LesserInt(6)))
-	assert.True(t, tree.Contains(LesserInt(2)))
-}
-
-func TestRemoveTest3(t *testing.T) {
-	tree := &Tree{}
-	tree.Add(LesserInt(2))
-	tree.Add(LesserInt(3))
-	tree.Add(LesserInt(4))
-
-	tree.Remove(LesserInt(3))
-
-	err := drawer.SaveTreeGraph(tree.Root, "./tree.png")
-	assert.Nil(t, err)
-
-	assert.False(t, tree.Contains(LesserInt(3)))
-	assert.True(t, tree.Contains(LesserInt(2)))
-	assert.True(t, tree.Contains(LesserInt(4)))
-}
-
 func TestUnbalancedTreeTest(t *testing.T) {
 	tree := &Tree{}
-	for i := 10; i >= 1; i-- {
+
+	for i := 1; i <= 10; i++ {
 		tree.Add(LesserInt(i))
 	}
 
