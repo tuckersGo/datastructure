@@ -1,6 +1,11 @@
 package calculator
 
 import (
+	"datastructure/tree/binarytree"
+	"datastructure/tree/drawer"
+	"fmt"
+	"log"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -145,4 +150,80 @@ func TestPriority(t *testing.T) {
 	rst, success := Evaluate(eval)
 	assert.True(t, success)
 	assert.Equal(t, 11, rst)
+}
+
+func TestMakeExpressionTree(t *testing.T) {
+	eval := "3 + 2 - 1"
+
+	root, success := MakeExpressionTree(eval)
+	assert.True(t, success)
+	assert.NotNil(t, root)
+
+	err := drawer.SaveTreeGraph(root, "./tree.png")
+	assert.Nil(t, err)
+}
+
+func TestMakeExpressionTree2(t *testing.T) {
+	eval := "3 + 2 - 1 * 3 / 4"
+
+	root, success := MakeExpressionTree(eval)
+	assert.True(t, success)
+	assert.NotNil(t, root)
+
+	err := drawer.SaveTreeGraph(root, "./tree.png")
+	assert.Nil(t, err)
+}
+
+func TestEvaluateExpressionTree(t *testing.T) {
+	eval := "3 + 2 - 1"
+
+	root, success := MakeExpressionTree(eval)
+	assert.True(t, success)
+	assert.NotNil(t, root)
+
+	rst := EvaluateExpressionTree(root)
+	assert.Equal(t, 4, rst)
+}
+
+func TestEvaluateExpressionTree2(t *testing.T) {
+	eval := "3 + 2 - 8 * 3 / 4"
+
+	root, success := MakeExpressionTree(eval)
+	assert.True(t, success)
+	assert.NotNil(t, root)
+
+	rst := EvaluateExpressionTree(root)
+	assert.Equal(t, -1, rst)
+}
+
+func TestPrintMidfix(t *testing.T) {
+	eval := "3 + 2 - 1"
+
+	root, success := MakeExpressionTree(eval)
+	assert.True(t, success)
+	assert.NotNil(t, root)
+
+	var sb strings.Builder
+	root.Inorder(func(tn *binarytree.TreeNode) {
+		sb.WriteString(fmt.Sprintf("%v ", tn.Value))
+	})
+
+	log.Println(sb.String())
+	assert.True(t, strings.Contains(sb.String(), "3 + 2 - 1"))
+}
+
+func TestPrintMidfix2(t *testing.T) {
+	eval := "3 + 2 - 8 * 3 / 4"
+
+	root, success := MakeExpressionTree(eval)
+	assert.True(t, success)
+	assert.NotNil(t, root)
+
+	var sb strings.Builder
+	root.Inorder(func(tn *binarytree.TreeNode) {
+		sb.WriteString(fmt.Sprintf("%v ", tn.Value))
+	})
+
+	log.Println(sb.String())
+	assert.True(t, strings.Contains(sb.String(), "3 + 2 - 8 * 3 / 4"))
 }

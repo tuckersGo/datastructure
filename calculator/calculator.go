@@ -1,11 +1,16 @@
 package calculator
 
-import "strconv"
+import (
+	"datastructure/tree/binarytree"
+	"strconv"
+)
 
 type token interface {
 	String() string
 	Evaluate(tokens *[]token) (int, bool)
 	Priority() int
+	MakeTreeNode(tokens *[]token) (*binarytree.TreeNode, bool)
+	EvaluateTree(left, right *binarytree.TreeNode) int
 }
 
 type number int
@@ -20,6 +25,16 @@ func (n number) Evaluate(tokens *[]token) (int, bool) {
 
 func (n number) Priority() int {
 	return 0
+}
+
+func (n number) MakeTreeNode(tokens *[]token) (*binarytree.TreeNode, bool) {
+	return &binarytree.TreeNode{
+		Value: n,
+	}, true
+}
+
+func (n number) EvaluateTree(left, right *binarytree.TreeNode) int {
+	return int(n)
 }
 
 type plus struct{}
@@ -53,6 +68,51 @@ func (n plus) Priority() int {
 	return 1
 }
 
+func makeOpTreeNode(opToken token, tokens *[]token) (*binarytree.TreeNode, bool) {
+	newtokens := *tokens
+	if len(newtokens) < 2 {
+		return nil, false
+	}
+
+	top, newtokens := newtokens[len(newtokens)-1], newtokens[:len(newtokens)-1]
+	right, success := top.MakeTreeNode(&newtokens)
+	if !success || len(newtokens) == 0 {
+		return nil, false
+	}
+	top, newtokens = newtokens[len(newtokens)-1], newtokens[:len(newtokens)-1]
+	left, success := top.MakeTreeNode(&newtokens)
+	if !success {
+		return nil, false
+	}
+
+	*tokens = newtokens
+	return &binarytree.TreeNode{
+		Value: opToken,
+		Left:  left,
+		Right: right,
+	}, true
+}
+
+func (n plus) MakeTreeNode(tokens *[]token) (*binarytree.TreeNode, bool) {
+	return makeOpTreeNode(n, tokens)
+}
+
+func (n plus) EvaluateTree(left, right *binarytree.TreeNode) int {
+	leftToken := left.Value.(token)
+	if leftToken == nil {
+		panic("leftToken should be not nil")
+	}
+	lh := leftToken.EvaluateTree(left.Left, left.Right)
+
+	rightToken := right.Value.(token)
+	if rightToken == nil {
+		panic("rightToken should be not nil")
+	}
+	rh := rightToken.EvaluateTree(right.Left, right.Right)
+
+	return lh + rh
+}
+
 type minus struct{}
 
 func (m minus) String() string {
@@ -82,6 +142,26 @@ func (p minus) Evaluate(tokens *[]token) (int, bool) {
 
 func (n minus) Priority() int {
 	return 1
+}
+
+func (n minus) MakeTreeNode(tokens *[]token) (*binarytree.TreeNode, bool) {
+	return makeOpTreeNode(n, tokens)
+}
+
+func (n minus) EvaluateTree(left, right *binarytree.TreeNode) int {
+	leftToken := left.Value.(token)
+	if leftToken == nil {
+		panic("leftToken should be not nil")
+	}
+	lh := leftToken.EvaluateTree(left.Left, left.Right)
+
+	rightToken := right.Value.(token)
+	if rightToken == nil {
+		panic("rightToken should be not nil")
+	}
+	rh := rightToken.EvaluateTree(right.Left, right.Right)
+
+	return lh - rh
 }
 
 type multiple struct{}
@@ -115,6 +195,26 @@ func (n multiple) Priority() int {
 	return 2
 }
 
+func (n multiple) MakeTreeNode(tokens *[]token) (*binarytree.TreeNode, bool) {
+	return makeOpTreeNode(n, tokens)
+}
+
+func (n multiple) EvaluateTree(left, right *binarytree.TreeNode) int {
+	leftToken := left.Value.(token)
+	if leftToken == nil {
+		panic("leftToken should be not nil")
+	}
+	lh := leftToken.EvaluateTree(left.Left, left.Right)
+
+	rightToken := right.Value.(token)
+	if rightToken == nil {
+		panic("rightToken should be not nil")
+	}
+	rh := rightToken.EvaluateTree(right.Left, right.Right)
+
+	return lh * rh
+}
+
 type divide struct{}
 
 func (m divide) String() string {
@@ -144,6 +244,26 @@ func (p divide) Evaluate(tokens *[]token) (int, bool) {
 
 func (n divide) Priority() int {
 	return 2
+}
+
+func (n divide) MakeTreeNode(tokens *[]token) (*binarytree.TreeNode, bool) {
+	return makeOpTreeNode(n, tokens)
+}
+
+func (n divide) EvaluateTree(left, right *binarytree.TreeNode) int {
+	leftToken := left.Value.(token)
+	if leftToken == nil {
+		panic("leftToken should be not nil")
+	}
+	lh := leftToken.EvaluateTree(left.Left, left.Right)
+
+	rightToken := right.Value.(token)
+	if rightToken == nil {
+		panic("rightToken should be not nil")
+	}
+	rh := rightToken.EvaluateTree(right.Left, right.Right)
+
+	return lh / rh
 }
 
 type parser struct {
@@ -242,4 +362,20 @@ func Evaluate(eval string) (rst int, success bool) {
 	top, tokens := tokens[len(tokens)-1], tokens[:len(tokens)-1]
 	rst, success = top.Evaluate(&tokens)
 	return
+}
+
+func MakeExpressionTree(eval string) (*binarytree.TreeNode, bool) {
+	tokens := postfix(eval)
+
+	top, tokens := tokens[len(tokens)-1], tokens[:len(tokens)-1]
+	return top.MakeTreeNode(&tokens)
+}
+
+func EvaluateExpressionTree(root *binarytree.TreeNode) int {
+	t := root.Value.(token)
+	if t == nil {
+		return 0
+	}
+
+	return t.EvaluateTree(root.Left, root.Right)
 }
